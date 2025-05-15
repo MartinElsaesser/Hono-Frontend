@@ -1,21 +1,21 @@
 .todo-card {
-  width: 100%;
-  max-width: 600px;
+	width: 100%;
+	max-width: 600px;
 }
 
 .todo-card h3 {
-  margin-bottom: 3px;
+	margin-bottom: 3px;
 }
 
 .todo-card div input {
-  margin-right: 8px;
+	margin-right: 8px;
 }
 
 #root {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 }
