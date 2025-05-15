@@ -21,5 +21,5 @@ export function useHono<TEndpoint extends HonoEndpoint>({
 	endpoint: TEndpoint;
 	input: InferRequestType<TEndpoint>;
 }) {
-	return useSWR({ endpoint, input }, fetcher<TEndpoint>);
+	return useSWR({ endpoint, input }, fetcher<TEndpoint>, { suspense: true });
 }
