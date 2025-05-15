@@ -22,13 +22,28 @@ function App() {
   if (error) return <div>Error</div>;
 
   const toggleDone = async (todo: Todo) => {
-    const response = await honoClient.api.todos[":todoId"].$patch({
-      param: { todoId: todo.id.toString() },
-      json: {
-        done: !todo.done,
-      },
-    });
-    mutate();
+
+    let optimisticData =  structuredClone(todos!)
+    optimisticData.data.todos = optimisticData?.data.todos.map(t => {
+
+            if(t.id == todo.id) {
+              return {
+                ...t,
+                done: !t.done
+              }
+            }
+            return t;
+          })
+    mutate(async (data) => {
+      const response = await honoClient.api.todos[":todoId"].$patch({
+        param: { todoId: todo.id.toString() },
+        json: {
+          done: !todo.done,
+        },
+      });
+      const allTodosResponse= await honoClient.api.todos.$get({});
+      return await allTodosResponse.json();
+    }, {optimisticData, rollbackOnError: true, revalidate: false, throwOnError: true});
   }
 
   const todoList = todos?.data.todos.map((todo) => (
