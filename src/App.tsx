@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import "./App.css";
 import { honoClient } from "./clients/hono";
 import { useHono } from "./hooks/useHono";
@@ -41,70 +42,75 @@ function App() {
 		})
 	);
 
-	const toggleDone = async (todo: Todo) => {
-		const optimisticData = todos.map(t => ({
-			...t,
-			done: t.id == todo.id ? !t.done : t.done,
-		}));
-		mutate(
-			async () => {
-				const response = await honoClient.api.todos[":todoId"].$patch({
-					param: { todoId: todo.id.toString() },
-					json: {
-						done: !todo.done,
-					},
-				});
-				const allTodosResponse = await honoClient.api.todos.$get({});
-				if (!response.ok || !allTodosResponse.ok) throw new Error("Failed to update todo");
-				return await allTodosResponse.json();
-			},
-			{
-				optimisticData,
-				rollbackOnError(error) {
-					alert("Failed to update todo");
-					return true;
-				},
-				revalidate: false,
-			}
-		);
-	};
-	const handleDragEnd = (event: DragEndEvent) => {
-		const { active, over } = event;
-
-		if (active.id !== over.id) {
-			const { id1, id2, position1, position2 } = {
-				id1: active.id as number,
-				id2: over!.id as number,
-				position1: active!.data!.current!.position as number,
-				position2: over!.data!.current!.position as number,
-			};
-			console.log("fromId", id1);
-			console.log("toId", id2);
-
-			const todo1Idx = todos.findIndex(todo => todo.id === id1);
-			const todo2Idx = todos.findIndex(todo => todo.id === id2);
-
+	const handleDoneChanged = useCallback(
+		async (todo: Todo) => {
+			const optimisticData = todos.map(t => ({
+				...t,
+				done: t.id == todo.id ? !t.done : t.done,
+			}));
 			mutate(
 				async () => {
-					const response = await honoClient.api.todos["@arrayMove"].$patch({
-						json: { toId: id2, fromId: id1 },
+					const response = await honoClient.api.todos[":todoId"].$patch({
+						param: { todoId: todo.id.toString() },
+						json: {
+							done: !todo.done,
+						},
 					});
 					const allTodosResponse = await honoClient.api.todos.$get({});
 					if (!response.ok || !allTodosResponse.ok)
-						throw new Error("Failed to swap todo positions");
+						throw new Error("Failed to update todo");
 					return await allTodosResponse.json();
 				},
 				{
-					optimisticData: arrayMove(todos, todo1Idx, todo2Idx),
+					optimisticData,
 					rollbackOnError(error) {
-						alert("Failed to swap todo positions");
+						alert("Failed to update todo");
 						return true;
 					},
 					revalidate: false,
 				}
 			);
-		}
-	};
+		},
+		[mutate, todos]
+	);
+	const handleDragEnd = useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event;
+
+			if (active.id !== over.id) {
+				const { id1, id2, position1, position2 } = {
+					id1: active.id as number,
+					id2: over!.id as number,
+					position1: active!.data!.current!.position as number,
+					position2: over!.data!.current!.position as number,
+				};
+
+				const todo1Idx = todos.findIndex(todo => todo.id === id1);
+				const todo2Idx = todos.findIndex(todo => todo.id === id2);
+
+				mutate(
+					async () => {
+						const response = await honoClient.api.todos["@arrayMove"].$patch({
+							json: { toId: id2, fromId: id1 },
+						});
+						const allTodosResponse = await honoClient.api.todos.$get({});
+						if (!response.ok || !allTodosResponse.ok)
+							throw new Error("Failed to swap todo positions");
+						return await allTodosResponse.json();
+					},
+					{
+						optimisticData: arrayMove(todos, todo1Idx, todo2Idx),
+						rollbackOnError(error) {
+							alert("Failed to swap todo positions");
+							return true;
+						},
+						revalidate: false,
+					}
+				);
+			}
+		},
+		[mutate, todos]
+	);
 
 	return (
 		<div className="App">
@@ -119,7 +125,7 @@ function App() {
 					strategy={verticalListSortingStrategy}
 				>
 					{todos.map(todo => (
-						<SortableTodo key={todo.id} todo={todo} toggleDone={toggleDone} />
+						<SortableTodo key={todo.id} todo={todo} onDoneChanged={handleDoneChanged} />
 					))}
 				</SortableContext>
 			</DndContext>
@@ -130,7 +136,7 @@ function App() {
 export default App;
 function SortableTodo({
 	todo,
-	toggleDone,
+	onDoneChanged,
 }: {
 	todo: {
 		id: number;
@@ -140,7 +146,7 @@ function SortableTodo({
 		headline: string;
 		position: number;
 	};
-	toggleDone: (todo: Todo) => Promise<void>;
+	onDoneChanged: (todo: Todo) => Promise<void>;
 }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: todo.id,
@@ -156,7 +162,7 @@ function SortableTodo({
 	return (
 		<div className="todo-card" ref={setNodeRef} style={style} {...attributes} {...listeners}>
 			<h3>
-				<input type="checkbox" checked={todo.done} onChange={() => toggleDone(todo)} />
+				<input type="checkbox" checked={todo.done} onInput={() => onDoneChanged(todo)} />
 				{todo.headline}
 			</h3>
 			<div>
@@ -165,8 +171,3 @@ function SortableTodo({
 		</div>
 	);
 }
-
-// [0,1,2,3]
-// idx 3: 3
-// [3,0,1,2]
-// idx 3: 0
