@@ -13,14 +13,21 @@ function App() {
   if (todos.isLoading) return <div>Loading...</div>;
   if (todos.error) return <div>Error</div>;
 
-  const todosJSX = todos.data?.data.todos.map((todo) => (
+  const todoList = todos.data?.data.todos.map((todo) => (
     <div key={todo.id} className="todo-card">
-      <h2>{todo.headline}</h2>
+      <h3>
+        <input type="checkbox" checked={todo.done} />
+        {todo.headline}
+      </h3>
       <div>{todo.description}</div>
-      <input type="checkbox" checked={todo.done} />
     </div>
   ));
-  return todosJSX;
+  return (
+    <div className="App">
+      <h1>Todo List</h1>
+      {todoList}
+    </div>
+  );
 }
 
 export default App;
