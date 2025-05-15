@@ -36,7 +36,10 @@ function App() {
 			},
 			{
 				optimisticData,
-				rollbackOnError: true,
+				rollbackOnError(error) {
+					console.error("Error updating todo:", error);
+					return true;
+				},
 				revalidate: false,
 				throwOnError: true,
 			}
