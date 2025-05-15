@@ -1,39 +1,26 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import { honoClient } from "./clients/hono";
 import { useHono } from "./hooks/useHono";
 
-const getTodoById = honoClient.api.todos[":id"].$get;
-function TodoDisplay() {
+const getAllTodos = honoClient.api.todos.$get;
+
+function App() {
   const todos = useHono({
-    input: {
-      param: {
-        id: "1",
-      },
-    },
-    endpoint: getTodoById,
+    input: {},
+    endpoint: getAllTodos,
   });
+
   if (todos.isLoading) return <div>Loading...</div>;
   if (todos.error) return <div>Error</div>;
 
-  const todoJSX = todos.data?.data.todo;
-  return <div>{todoJSX?.headline}</div>;
-  // const todosJSX = todos.data?.data.posts.map((post) => (
-  //   <div>{post.headline}</div>
-  // ));
-  // return todosJSX;
-}
-
-function App() {
-  return (
-    <>
-      <TodoDisplay />
-      <TodoDisplay />
-      <TodoDisplay />
-    </>
-  );
+  const todosJSX = todos.data?.data.todos.map((todo) => (
+    <div key={todo.id} className="todo-card">
+      <h2>{todo.headline}</h2>
+      <div>{todo.description}</div>
+      <input type="checkbox" checked={todo.done} />
+    </div>
+  ));
+  return todosJSX;
 }
 
 export default App;
