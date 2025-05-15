@@ -18,7 +18,7 @@ function TodoDisplay() {
   if (todos.isLoading) return <div>Loading...</div>;
   if (todos.error) return <div>Error</div>;
 
-  const todoJSX = todos.data?.data.post;
+  const todoJSX = todos.data?.data.todo;
   return <div>{todoJSX?.headline}</div>;
   // const todosJSX = todos.data?.data.posts.map((post) => (
   //   <div>{post.headline}</div>
@@ -29,13 +29,6 @@ function TodoDisplay() {
 function App() {
   return (
     <>
-      <TodoDisplay />
-      <TodoDisplay />
-      <TodoDisplay />
-      <TodoDisplay />
-      <TodoDisplay />
-      <TodoDisplay />
-      <TodoDisplay />
       <TodoDisplay />
       <TodoDisplay />
       <TodoDisplay />
