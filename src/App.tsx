@@ -13,13 +13,10 @@ type Todo = {
 };
 
 function App() {
-  const { data: todos, isLoading, error, mutate } = useHono({
+  const { data: todos, mutate } = useHono({
     input: {},
     endpoint: getAllTodos,
   });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error</div>;
 
   const toggleDone = async (todo: Todo) => {
     const optimisticData = todos!.map((t) => {

@@ -16,5 +16,8 @@ export function useHono<TEndpoint extends HonoEndpoint>(
   return useSWR(
     [endpoint, input],
     fetcher<TEndpoint>,
+    {
+      suspense: true,
+    }
   )
 }
