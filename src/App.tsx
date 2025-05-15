@@ -19,10 +19,10 @@ function App() {
 	});
 
 	const toggleDone = async (todo: Todo) => {
-		const optimisticData = todos!.map(t => {
-			const updateDone = t.id == todo.id ? !t.done : t.done;
-			return { ...t, done: updateDone };
-		});
+		const optimisticData = todos.map(t => ({
+			...t,
+			done: t.id == todo.id ? !t.done : t.done,
+		}));
 		mutate(
 			async () => {
 				await honoClient.api.todos[":todoId"].$patch({
@@ -46,7 +46,7 @@ function App() {
 		);
 	};
 
-	const todoList = todos!.map(todo => (
+	const todoList = todos.map(todo => (
 		<div key={todo.id} className="todo-card">
 			<h3>
 				<input type="checkbox" checked={todo.done} onChange={() => toggleDone(todo)} />
