@@ -25,23 +25,23 @@ function App() {
 		}));
 		mutate(
 			async () => {
-				await honoClient.api.todos[":todoId"].$patch({
+				const response = await honoClient.api.todos[":todoId"].$patch({
 					param: { todoId: todo.id.toString() },
 					json: {
 						done: !todo.done,
 					},
 				});
 				const allTodosResponse = await honoClient.api.todos.$get({});
+				if (!response.ok || !allTodosResponse.ok) throw new Error("Failed to update todo");
 				return await allTodosResponse.json();
 			},
 			{
 				optimisticData,
 				rollbackOnError(error) {
-					console.error("Error updating todo:", error);
+					alert("Failed to update todo");
 					return true;
 				},
 				revalidate: false,
-				throwOnError: true,
 			}
 		);
 	};
