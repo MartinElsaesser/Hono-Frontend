@@ -79,20 +79,16 @@ function App() {
 			const { active, over } = event;
 
 			if (active.id !== over.id) {
-				const { id1, id2, position1, position2 } = {
-					id1: active.id as number,
-					id2: over!.id as number,
-					position1: active!.data!.current!.position as number,
-					position2: over!.data!.current!.position as number,
-				};
+				const fromId = active.id as number;
+				const toId = over!.id as number;
 
-				const todo1Idx = todos.findIndex(todo => todo.id === id1);
-				const todo2Idx = todos.findIndex(todo => todo.id === id2);
+				const fromTodoIdx = todos.findIndex(todo => todo.id === fromId);
+				const toTodoIdx = todos.findIndex(todo => todo.id === toId);
 
 				mutate(
 					async () => {
 						const response = await honoClient.api.todos["@arrayMove"].$patch({
-							json: { toId: id2, fromId: id1 },
+							json: { toId, fromId },
 						});
 						const allTodosResponse = await honoClient.api.todos.$get({});
 						if (!response.ok || !allTodosResponse.ok)
@@ -100,8 +96,8 @@ function App() {
 						return await allTodosResponse.json();
 					},
 					{
-						optimisticData: arrayMove(todos, todo1Idx, todo2Idx),
-						rollbackOnError(error) {
+						optimisticData: arrayMove(todos, fromTodoIdx, toTodoIdx),
+						rollbackOnError(_error) {
 							alert("Failed to swap todo positions");
 							return true;
 						},
