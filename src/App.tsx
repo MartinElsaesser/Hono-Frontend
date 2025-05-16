@@ -64,7 +64,7 @@ function App() {
 				},
 				{
 					optimisticData,
-					rollbackOnError(error) {
+					rollbackOnError(_error) {
 						alert("Failed to update todo");
 						return true;
 					},
@@ -112,28 +112,31 @@ function App() {
 		},
 		[mutate, todos]
 	);
-	const handleDelete = useCallback(async (todo: Todo) => {
-		const optimisticData = todos.filter(t => t.id !== todo.id);
-		mutate(
-			async () => {
-				const deleteTodoResponse = await honoClient.api.todos.$delete({
-					json: { todoId: todo.id },
-				});
-				const allTodosResponse = await honoClient.api.todos.$get({});
-				if (!deleteTodoResponse.ok || !allTodosResponse.ok)
-					throw new Error("Failed to update todo");
-				return await allTodosResponse.json();
-			},
-			{
-				optimisticData,
-				rollbackOnError(error) {
-					alert("Failed to update todo");
-					return true;
+	const handleDelete = useCallback(
+		async (todo: Todo) => {
+			const optimisticData = todos.filter(t => t.id !== todo.id);
+			mutate(
+				async () => {
+					const deleteTodoResponse = await honoClient.api.todos.$delete({
+						json: { todoId: todo.id },
+					});
+					const allTodosResponse = await honoClient.api.todos.$get({});
+					if (!deleteTodoResponse.ok || !allTodosResponse.ok)
+						throw new Error("Failed to update todo");
+					return await allTodosResponse.json();
 				},
-				revalidate: false,
-			}
-		);
-	}, []);
+				{
+					optimisticData,
+					rollbackOnError(_error) {
+						alert("Failed to update todo");
+						return true;
+					},
+					revalidate: false,
+				}
+			);
+		},
+		[mutate, todos]
+	);
 	const createTodo = useCallback(async () => {}, []);
 
 	return (
