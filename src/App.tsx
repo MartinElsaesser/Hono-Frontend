@@ -165,8 +165,9 @@ function SortableTodo({
 		transition,
 	};
 
+	const className = todo.done ? "card card__grab card__done" : "card card__grab";
 	return (
-		<div className="card card__grab" ref={setNodeRef} style={style}>
+		<div className={className} ref={setNodeRef} style={style}>
 			<div className="card--left">
 				<h3>{todo.headline}</h3>
 				<div className="card--description">{todo.description} </div>

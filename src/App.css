@@ -36,6 +36,9 @@
 .card h6 {
 	margin: 0;
 }
+.card__done {
+	opacity: 0.5;
+}
 .card.todo--card h3 {
 	margin-bottom: 3px;
 }
