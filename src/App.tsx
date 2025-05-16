@@ -44,6 +44,7 @@ function App() {
 	);
 	const [headline, setHeadline] = useState("");
 	const [description, setDescription] = useState("");
+	const [onlyUnfinishedTodos, setOnlyUnfinishedTodos] = useState(false);
 	const canCreateTodo = headline.length > 0 && description.length > 0;
 
 	const handleDoneChanged = useCallback(
@@ -202,6 +203,16 @@ function App() {
 					onChange={e => setDescription(e.target.value)}
 				></textarea>
 			</div>
+
+			<div>
+				Only show not done todos &nbsp;
+				<Switch
+					round={true}
+					size="small"
+					checked={onlyUnfinishedTodos}
+					onChange={() => setOnlyUnfinishedTodos(!onlyUnfinishedTodos)}
+				></Switch>
+			</div>
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCenter}
@@ -211,14 +222,16 @@ function App() {
 					items={todos.map(todo => todo.id)}
 					strategy={verticalListSortingStrategy}
 				>
-					{todos.map(todo => (
-						<SortableTodo
-							key={todo.id}
-							todo={todo}
-							onDoneChanged={handleDoneChanged}
-							onDelete={handleDelete}
-						/>
-					))}
+					{todos
+						.filter(t => (onlyUnfinishedTodos ? t.done === false : true))
+						.map(todo => (
+							<SortableTodo
+								key={todo.id}
+								todo={todo}
+								onDoneChanged={handleDoneChanged}
+								onDelete={handleDelete}
+							/>
+						))}
 				</SortableContext>
 			</DndContext>
 		</div>
