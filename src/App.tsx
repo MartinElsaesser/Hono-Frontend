@@ -19,6 +19,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Switch } from "./components/Switch";
 
 const getAllTodos = honoClient.api.todos.$get;
 type Todo = {
@@ -113,8 +114,10 @@ function App() {
 	);
 
 	return (
-		<div className="App">
+		<div className="app">
 			<h1>Todo List</h1>
+			<input type="text" />
+			<input type="text" name="" id="" />
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCenter}
@@ -137,6 +140,7 @@ export default App;
 function SortableTodo({
 	todo,
 	onDoneChanged,
+	onDelete,
 }: {
 	todo: {
 		id: number;
@@ -147,6 +151,7 @@ function SortableTodo({
 		position: number;
 	};
 	onDoneChanged: (todo: Todo) => Promise<void>;
+	onDelete: (todo: Todo) => Promise<void>;
 }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: todo.id,
@@ -154,19 +159,32 @@ function SortableTodo({
 			position: todo.position,
 		},
 	});
+
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
 	};
 
 	return (
-		<div className="todo-card" ref={setNodeRef} style={style} {...attributes} {...listeners}>
-			<h3>
-				<input type="checkbox" checked={todo.done} onInput={() => onDoneChanged(todo)} />
-				{todo.headline}
-			</h3>
-			<div>
-				pos:{todo.position} id:{todo.id}
+		<div className="card card__grab" ref={setNodeRef} style={style}>
+			<div className="card--left">
+				<h3>{todo.headline}</h3>
+				<div className="card--description">{todo.description} </div>
+			</div>
+			<div className="card--right">
+				<Switch
+					round={true}
+					checked={todo.done}
+					onChange={() => onDoneChanged(todo)}
+				></Switch>
+				<button className="button--danger" onClick={() => onDelete(todo)}>
+					&#128465;
+				</button>
+				<button {...listeners} {...attributes} className="button--handle">
+					<svg viewBox="0 0 20 20" width="12">
+						<path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
+					</svg>
+				</button>
 			</div>
 		</div>
 	);
