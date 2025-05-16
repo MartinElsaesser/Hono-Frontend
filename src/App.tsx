@@ -138,8 +138,7 @@ function App() {
 		[mutate, todos]
 	);
 	const createTodo = useCallback(async () => {
-		console.log({ description, headline });
-
+		if (!canCreateTodo) return;
 		const optimisticTodos = structuredClone(todos);
 		optimisticTodos.push({
 			id: optimisticTodos.length + 1,
@@ -149,7 +148,6 @@ function App() {
 			headline,
 			position: todos.length + 1,
 		});
-		console.log(optimisticTodos);
 
 		mutate(
 			async () => {
@@ -175,7 +173,10 @@ function App() {
 				revalidate: false,
 			}
 		);
-	}, [description, headline, mutate, todos]);
+
+		setDescription("");
+		setHeadline("");
+	}, [canCreateTodo, description, headline, mutate, todos]);
 
 	return (
 		<div className="app">
