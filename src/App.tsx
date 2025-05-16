@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import "./App.css";
 import { honoClient } from "./clients/hono";
 import { useHono } from "./hooks/useHono";
@@ -42,6 +42,9 @@ function App() {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
 	);
+	const [headline, setHeadline] = useState("");
+	const [description, setDescription] = useState("");
+	const canCreateTodo = headline.length > 0 && description.length > 0;
 
 	const handleDoneChanged = useCallback(
 		async (todo: Todo) => {
@@ -133,7 +136,45 @@ function App() {
 		},
 		[mutate, todos]
 	);
-	const createTodo = useCallback(async () => {}, []);
+	const createTodo = useCallback(async () => {
+		console.log({ description, headline });
+
+		const optimisticTodos = structuredClone(todos);
+		optimisticTodos.push({
+			id: optimisticTodos.length + 1,
+			created_at: new Date().toISOString(),
+			description,
+			done: false,
+			headline,
+			position: todos.length + 1,
+		});
+		console.log(optimisticTodos);
+
+		mutate(
+			async () => {
+				const createdTodoResponse = await honoClient.api.todos.$post({
+					json: {
+						headline,
+						description,
+						done: false,
+					},
+				});
+
+				const allTodosResponse = await honoClient.api.todos.$get({});
+				if (!createdTodoResponse.ok || !allTodosResponse.ok)
+					throw new Error("Failed to update todo");
+				return await allTodosResponse.json();
+			},
+			{
+				optimisticData: optimisticTodos,
+				rollbackOnError(_error) {
+					alert("Failed to update todo");
+					return true;
+				},
+				revalidate: false,
+			}
+		);
+	}, [description, headline, mutate, todos]);
 
 	return (
 		<div className="app">
@@ -141,12 +182,25 @@ function App() {
 			<div className="card card__create">
 				<div>Create a new todo</div>
 				<div className="input-grow">
-					<input type="text" placeholder="Enter the todo headline" />
-					<button className="button__add" onClick={() => createTodo()}>
+					<input
+						type="text"
+						placeholder="Enter the todo headline"
+						value={headline}
+						onChange={e => setHeadline(e.target.value)}
+					/>
+					<button
+						className="button__add"
+						onClick={() => createTodo()}
+						disabled={!canCreateTodo}
+					>
 						Create &#x27A4;
 					</button>
 				</div>
-				<textarea placeholder="Enter the todo description"></textarea>
+				<textarea
+					placeholder="Enter the todo description"
+					value={description}
+					onChange={e => setDescription(e.target.value)}
+				></textarea>
 			</div>
 			<DndContext
 				sensors={sensors}
