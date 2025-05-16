@@ -8,6 +8,14 @@
 	width: var(--switch-width);
 	height: var(--switch-height);
 }
+.switch.medium {
+	--switch-height: 30px;
+	--switch-width: calc(var(--switch-height) * 1.76);
+}
+.switch.small {
+	--switch-height: 20px;
+	--switch-width: calc(var(--switch-height) * 1.76);
+}
 
 /* Hide default HTML checkbox */
 .switch input {
