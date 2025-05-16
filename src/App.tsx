@@ -112,12 +112,43 @@ function App() {
 		},
 		[mutate, todos]
 	);
+	const handleDelete = useCallback(async (todo: Todo) => {
+		const optimisticData = todos.filter(t => t.id !== todo.id);
+		mutate(
+			async () => {
+				const deleteTodoResponse = await honoClient.api.todos.$delete({
+					json: { todoId: todo.id },
+				});
+				const allTodosResponse = await honoClient.api.todos.$get({});
+				if (!deleteTodoResponse.ok || !allTodosResponse.ok)
+					throw new Error("Failed to update todo");
+				return await allTodosResponse.json();
+			},
+			{
+				optimisticData,
+				rollbackOnError(error) {
+					alert("Failed to update todo");
+					return true;
+				},
+				revalidate: false,
+			}
+		);
+	}, []);
+	const createTodo = useCallback(async () => {}, []);
 
 	return (
 		<div className="app">
 			<h1>Todo List</h1>
-			<input type="text" />
-			<input type="text" name="" id="" />
+			<div className="card card__create">
+				<div>Create a new todo</div>
+				<div className="input-grow">
+					<input type="text" placeholder="Enter the todo headline" />
+					<button className="button__add" onClick={() => createTodo()}>
+						Create &#x27A4;
+					</button>
+				</div>
+				<textarea placeholder="Enter the todo description"></textarea>
+			</div>
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCenter}
@@ -128,7 +159,12 @@ function App() {
 					strategy={verticalListSortingStrategy}
 				>
 					{todos.map(todo => (
-						<SortableTodo key={todo.id} todo={todo} onDoneChanged={handleDoneChanged} />
+						<SortableTodo
+							key={todo.id}
+							todo={todo}
+							onDoneChanged={handleDoneChanged}
+							onDelete={handleDelete}
+						/>
 					))}
 				</SortableContext>
 			</DndContext>
@@ -150,8 +186,8 @@ function SortableTodo({
 		headline: string;
 		position: number;
 	};
-	onDoneChanged: (todo: Todo) => Promise<void>;
-	onDelete: (todo: Todo) => Promise<void>;
+	onDoneChanged: (todo: Todo) => void;
+	onDelete: (todo: Todo) => void;
 }) {
 	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
 		id: todo.id,
@@ -178,10 +214,10 @@ function SortableTodo({
 					checked={todo.done}
 					onChange={() => onDoneChanged(todo)}
 				></Switch>
-				<button className="button--danger" onClick={() => onDelete(todo)}>
+				<button className="button__symbol button__danger" onClick={() => onDelete(todo)}>
 					&#128465;
 				</button>
-				<button {...listeners} {...attributes} className="button--handle">
+				<button {...listeners} {...attributes} className="button__symbol button__handle">
 					<svg viewBox="0 0 20 20" width="12">
 						<path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
 					</svg>
